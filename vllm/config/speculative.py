@@ -41,7 +41,7 @@ MTPModelTypes = Literal[
     "mtp",
     "pangu_ultra_moe_mtp",
 ]
-EagleModelTypes = Literal["eagle", "eagle3", MTPModelTypes]
+EagleModelTypes = Literal["eagle", "eagle3", "eagle3_lc", MTPModelTypes]
 SpeculativeMethod = Literal[
     "ngram",
     "medusa",
@@ -366,7 +366,7 @@ class SpeculativeConfig:
                 )
 
                 # Automatically detect the method
-                if self.method in ("eagle", "eagle3"):
+                if self.method in ("eagle", "eagle3", "eagle3_lc"):
                     pass
                 # examples:
                 # yuhuili/EAGLE-LLaMA3-Instruct-8B
@@ -374,6 +374,8 @@ class SpeculativeConfig:
                 # AngelSlim/Qwen3-8B_eagle3
                 elif "eagle-" in self.draft_model_config.model.lower():
                     self.method = "eagle"
+                elif "eagle3_lc" in self.draft_model_config.model.lower():
+                    self.method = "eagle3_lc"
                 elif "eagle3" in self.draft_model_config.model.lower():
                     self.method = "eagle3"
                 elif self.draft_model_config.hf_config.model_type == "medusa":
@@ -408,7 +410,7 @@ class SpeculativeConfig:
                     )
 
                 # Replace hf_config for EAGLE draft_model
-                if self.method in ("eagle", "eagle3"):
+                if self.method in ("eagle", "eagle3", "eagle3_lc"):
                     from vllm.transformers_utils.configs import SpeculatorsConfig
                     from vllm.transformers_utils.configs.eagle import EAGLEConfig
 
@@ -665,7 +667,7 @@ class SpeculativeConfig:
 
         eagle3_target_supported = ["llama", "qwen", "minicpm", "gpt_oss"]
         if (
-            self.method == "eagle3"
+            self.method in ("eagle3", "eagle3_lc")
             and self.target_model_config
             and not any(
                 supported_model in self.target_model_config.hf_text_config.model_type
@@ -673,7 +675,7 @@ class SpeculativeConfig:
             )
         ):
             raise ValueError(
-                f"Eagle3 is only supported for {eagle3_target_supported} models. "  # noqa: E501
+                f"Eagle3/Eagle3LC is only supported for {eagle3_target_supported} models. "  # noqa: E501
                 f"Got {self.target_model_config.hf_text_config.model_type=}"
             )
         self.verify_equal_vocab_size_if_draft_model()
@@ -697,7 +699,7 @@ class SpeculativeConfig:
                 )
 
     def use_eagle(self) -> bool:
-        return self.method in ("eagle", "eagle3", "mtp")
+        return self.method in ("eagle", "eagle3", "eagle3_lc", "mtp")
 
     def uses_draft_model(self) -> bool:
         return self.method == "draft_model"

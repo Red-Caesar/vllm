@@ -45,10 +45,23 @@ def update_eagle3_lc(config_dict: dict, vllm_config: dict) -> None:
     Extends Eagle-3 with configurable RoPE scaling controlled by the
     ``rope_method`` field in the speculators config:
 
-    - "full"    — no RoPE changes (identical to eagle3)
-    - "yarn"    — sets ``rope_scaling`` from ``rope_scaling_config``
-    - "llama3"  — sets ``rope_scaling`` from ``rope_scaling_config``
-    - "partial" — sets ``partial_rotary_factor`` from ``rope_partial_factor``
+    - "full"         — no RoPE changes (identical to eagle3); the verifier's
+                       native ``rope_scaling`` is inherited unchanged.
+    - "yarn"         — sets ``rope_scaling`` from ``rope_scaling_config``
+                       (static YaRN applied at all context lengths).
+    - "dynamic_yarn" — no ``rope_scaling`` override; the verifier's native
+                       ``rope_scaling`` is inherited unchanged, identical to
+                       "full".  vLLM has no dynamic-switching RoPE, so Llama3
+                       frequencies are used for all positions.  This matches
+                       training behaviour: the speculators
+                       ``DynamicYaRNRotaryEmbedding`` uses the verifier's base
+                       RoPE for sequences up to ``original_max_position_embeddings``
+                       (which equals ``total_seq_len`` in practice, so YaRN is
+                       never triggered during training).
+    - "llama3"       — sets ``rope_scaling`` from ``rope_scaling_config``
+                       (explicit Llama-3.1 scaling parameters).
+    - "partial"      — sets ``partial_rotary_factor`` from ``rope_partial_factor``
+                       (Qwen3-style partial rotation).
 
     For yarn/llama3 the ``rope_scaling_config`` dict is written to
     ``vllm_config["rope_scaling"]`` so that ``patch_rope_parameters`` in
@@ -77,3 +90,5 @@ def update_eagle3_lc(config_dict: dict, vllm_config: dict) -> None:
     elif rope_method == "partial":
         rope_partial_factor = config_dict.get("rope_partial_factor", 0.25)
         vllm_config["partial_rotary_factor"] = rope_partial_factor
+    # "full" and "dynamic_yarn" leave rope_scaling unchanged, inheriting the
+    # verifier's native scaling (Llama3 for Llama-3.1-8B).

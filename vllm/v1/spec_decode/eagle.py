@@ -290,7 +290,7 @@ class SpecDecodeBaseProposer:
     ) -> torch.Tensor:
         batch_size = common_attn_metadata.batch_size()
 
-        if self.method == "eagle3":
+        if self.method in ("eagle3", "eagle3_lc"):
             assert isinstance(self.model, Eagle3LlamaForCausalLM)
             target_hidden_states = self.model.combine_hidden_states(
                 target_hidden_states
@@ -1338,7 +1338,7 @@ class SpecDecodeBaseProposer:
         They might indicate this by setting "use_aux_hidden_state" to False
         inside the "eagle_config" dict of their hf_config.
         """
-        if self.method != "eagle3":
+        if self.method not in ("eagle3", "eagle3_lc"):
             return False
         # Assume that eagle3 heads use aux hidden states by default
         use_aux_hidden_state = True

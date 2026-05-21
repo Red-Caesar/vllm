@@ -240,7 +240,7 @@ class LlamaAttention(nn.Module):
         is_gguf = quant_config and quant_config.get_name() == "gguf"
         if is_gguf and config.model_type == "llama":
             is_neox_style = False
-
+        # print("HERE Llama Attention", config)
         self.rotary_emb = get_rope(
             self.head_dim,
             max_position=self.max_position_embeddings,

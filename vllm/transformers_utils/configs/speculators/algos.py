@@ -36,8 +36,3 @@ def update_eagle3(config_dict: dict, vllm_config: dict) -> None:
         vllm_config["eagle_aux_hidden_state_layer_ids"] = config_dict[
             "eagle_aux_hidden_state_layer_ids"
         ]
-    # rope_scaling = config_dict.get("rope_scaling")
-    # if rope_scaling is not None:
-    #     vllm_config["rope_scaling"] = rope_scaling
-    # partial_rotary_factor = config_dict.get("partial_rotary_factor", 1.0)
-    # vllm_config["partial_rotary_factor"] = partial_rotary_factor
